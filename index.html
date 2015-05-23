@@ -1,0 +1,210 @@
+<!doctype html>
+<html class="no-js" lang="">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <style>
+            body {
+                padding-top: 50px;
+                padding-bottom: 20px;
+            }
+            .inputparent {
+              float: left;
+              padding-left: 5px;
+            }
+            .input {
+              width: 25px;
+              height: 25px;
+              border: 1px black solid;
+              text-align: center;
+              padding-top: 2px;
+              font-family: Courier, monospace;
+              font-size: 16px;
+            }
+            #output {
+              padding: 20px;
+              text-align: center;
+              font-family: Courier, monospace;
+              font-size: 16px;
+              word-wrap: break-word;
+            }
+            .color-input {
+              width: 20px;
+              height: 20px;
+              border: 1px black solid;
+              text-align: center;
+              padding-top: 12px;
+              font-family: Courier, monospace;
+              font-size: 16px;
+              float: left;
+              margin: 5px;
+            }
+            .styleinput {
+              float: left;
+              border: 1px lightgray solid;
+              margin: 5px;
+              padding: 5px;
+            }
+        </style>
+        <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="css/main.css">
+
+        <script src="js/vendor/modernizr-2.8.3.min.js"></script>
+    </head>
+    <body>
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="#">swordfightr</a>
+        </div>
+      </div>
+    </nav>
+
+    <div class="jumbotron">
+      <div class="container" id="main">
+       
+      </div>
+      <div id="output">
+      </div>
+    </div>
+    <div class="container" id="secondary">
+      <div id="fontstyle"><h4>font style</h4>
+        <div class="styleinput" id="bold">Bold</div>
+        <div class="styleinput" id="italic">Italic</div>
+        <div class="styleinput" id="underline">Underline</div>
+        <div class="styleinput" id="bolditalic">Bold+Italic</div>
+      </div>
+      <br>
+      <br>
+      <div id="fontcolor"><h4>font color</h4></div>
+      <br>
+      <div id="backgroundcolor"><h4>background color</h4></div>
+    </div>
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.js"></script>
+    <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.js"><\/script>')</script>
+
+    <script src="js/vendor/bootstrap.min.js"></script>
+
+
+    <script>
+      var log = console.log;
+      var activeEl;
+      var fontstyle = 'normal';
+
+      var colorTemplate = '<div class="color-input" data-type=""></div>'
+      var colors = ['Black', 'Red', 'Green', 'Yellow', 'Blue', 'Purple', 'Cyan', 'LightGray', 'DarkGray'];
+      var codes = ['#000000', '#FF0000', '#00FF00', '#FFFF00', '#0000FF', '#800080', '#00FFFF', '#D3D3D3', '#A9A9A9'];
+      var fontColorEscapeCodes = ['0;30', '0;31', '0;32', '1;33', '0;34', '0;35', '0;36', '0;37', '1;30'];
+
+      function buildColorInput(container, type) {
+        var i = 0;
+        colors.forEach(function(color) {
+          var colorCode = codes[i];
+          var colorInput = $(colorTemplate).css('background-color', colorCode);
+          $(colorTemplate).attr('data-type', type);
+          colorInput.click(function(e) {
+            if (type === 'font') {
+              activeEl.children('div').eq(0).css('color', colorCode);
+              activeEl.children('div').eq(0).attr('data-font-color', color);
+            } else {
+              activeEl.children('div').eq(0).css(type + '-color', colorCode);
+              activeEl.children('div').eq(0).attr('data-background-color', color);
+            }
+
+            buildEscapeCode();
+          });
+          $(container).append(colorInput);
+          i++;
+        });
+      }
+
+      function getEscapeFromColor(color, escapeArr, escapeType) {
+        console.log(color)
+        console.log(colors)
+        for (var i in colors) {
+          console.log(colors[i] + ' == ' + color)
+          if (colors[i] === color) {
+            var escapeColor = color;
+            var pre;
+            var post;
+            pre = parseInt(escapeArr[i].split(';')[0]);
+            post = parseInt(escapeArr[i].split(';')[1]);
+            if (escapeType === 'background') {
+              post += 10;
+              if (color === 'DarkGray') {
+                post = 100;
+              }
+            }
+
+            return '\\' + pre.toString() + ';' + post.toString();
+          }
+        }
+
+        return '';
+      }
+
+      function buildEscapeCode() {
+        console.log('buildEscapeCode')
+        $('#output').empty();
+        $('.input').each(function(el) {
+          el = $(this);
+          var text = el.text();
+          if (text) {
+            $('#output').append('\\033[0' +
+              getEscapeFromColor(el.attr('data-background-color'), fontColorEscapeCodes, 'background') +
+              getEscapeFromColor(el.attr('data-font-color'), fontColorEscapeCodes, fontstyle) + 'm' +
+              text + '\\033[0m');
+          }
+        });
+        
+      };
+
+      buildColorInput($('#fontcolor'), 'font');
+      buildColorInput($('#backgroundcolor'), 'background');
+
+      var elTemplate = "<div class='inputparent'> \
+                          <div class='input' contentEditable='true'></div> \
+                          <div class='output'></div> \
+                        </div>";
+
+      var textEntry = function() {
+        var el = $(elTemplate);
+        el.click(function(e) {
+          activeEl = $(this);
+        });
+
+        el.keyup(function(e) {
+          buildEscapeCode()
+        });
+
+        $('#main').append(el)
+      };
+
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+      new textEntry();
+
+    </script>
+    </body>
+</html>
