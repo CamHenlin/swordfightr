@@ -184,10 +184,10 @@
             }
 
             if (escapeType === 'font') {
-              return '\\033[' + pre.toString() + ';' + post.toString();
+              return '\\033[' + pre.toString() + ';' + post.toString() + 'm';
             }
 
-            return '\\033[' + pre.toString() + ';' + post.toString();
+            return '\\033[' + pre.toString() + ';' + post.toString() + 'm';
           }
         }
 
@@ -201,8 +201,8 @@
           var text = el.text();
           if (text) {
             $('#output').append('\\033[0' +
-              getEscapeFromColor(el.attr('data-font-color'), fontColorEscapeCodes, el.attr('data-font-style')) + 'm' +
-              getEscapeFromColor(el.attr('data-background-color'), fontColorEscapeCodes, 'background', el.attr('data-font-style')) + 'm' +
+              getEscapeFromColor(el.attr('data-font-color'), fontColorEscapeCodes, el.attr('data-font-style')) +
+              getEscapeFromColor(el.attr('data-background-color'), fontColorEscapeCodes, 'background', el.attr('data-font-style')) +
               text +
               '\\033[0m');
           }
